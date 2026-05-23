@@ -132,7 +132,7 @@ h1 {
 }
 
 .status-main,
-.status-actions {
+.refresh-button {
   position: relative;
   z-index: 1;
 }
@@ -188,13 +188,7 @@ h1 {
   font-size: 1.05rem;
 }
 
-.status-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.refresh-button,
-.notify-button {
+.refresh-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -209,14 +203,12 @@ h1 {
   cursor: pointer;
 }
 
-.refresh-button:hover,
-.notify-button:hover {
+.refresh-button:hover {
   border-color: #111111;
   transform: translateY(-1px);
 }
 
-.refresh-button:disabled,
-.notify-button:disabled {
+.refresh-button:disabled {
   cursor: wait;
   opacity: 0.7;
   transform: none;
@@ -275,9 +267,7 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .status-actions,
-  .refresh-button,
-  .notify-button {
+  .refresh-button {
     width: 100%;
   }
 }

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MCPVP Check shows whether mcpvp.com is open to all or whitelist-only by reading the server MOTD.">
+    <title>MCPVP Check</title>
+    <link rel="preconnect" href="https://api.mcsrvstat.us">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Live Minecraft status</p>
+          <h1 id="page-title">MCPVP Check</h1>
+          <p class="lede">A clean whitelist checker for <strong>mcpvp.com</strong>.</p>
+        </div>
+
+        <div class="server-chip" aria-label="Server address">
+          <span class="pulse" aria-hidden="true"></span>
+          <span>mcpvp.com</span>
+        </div>
+      </section>
+
+      <section class="status-card unknown" id="status-card" aria-live="polite">
+        <div class="status-main">
+          <div class="status-icon" id="status-icon" aria-hidden="true">?</div>
+          <div>
+            <p class="status-kicker" id="status-kicker">Checking MOTD</p>
+            <h2 id="status-title">Loading...</h2>
+            <p id="status-detail">Contacting the Minecraft status API.</p>
+          </div>
+        </div>
+
+        <button class="refresh-button" id="refresh-button" type="button">
+          <span aria-hidden="true">↻</span>
+          Refresh
+        </button>
+      </section>
+
+      <section class="details-grid" aria-label="Server details">
+        <article class="detail-box">
+          <span class="label">MOTD</span>
+          <p id="motd">Waiting for server message...</p>
+        </article>
+        <article class="detail-box">
+          <span class="label">Players</span>
+          <p id="players">-- / --</p>
+        </article>
+        <article class="detail-box">
+          <span class="label">Version</span>
+          <p id="version">Unknown</p>
+        </article>
+        <article class="detail-box">
+          <span class="label">Last Checked</span>
+          <p id="checked-at">--</p>
+        </article>
+      </section>
+
+      <section class="how-it-works" aria-labelledby="how-title">
+        <h2 id="how-title">How It Checks</h2>
+        <p>
+          This page calls the public mcsrvstat.us endpoint, which resolves DNS,
+          pings the Minecraft server, reads the MOTD, and returns the result as JSON.
+        </p>
+        <code>https://api.mcsrvstat.us/3/mcpvp.com</code>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

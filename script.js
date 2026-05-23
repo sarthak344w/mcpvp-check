@@ -61,6 +61,17 @@ function readWhitelistState(motd) {
   return "unknown";
 }
 
+function formatNYCTime(date) {
+  const time = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "America/New_York"
+  }).format(date);
+
+  return `${time} EST NYC`;
+}
+
 function setStatus(state, data, motd) {
   statusCard.className = `status-card ${state}`;
   motdValue.textContent = motd;
@@ -68,13 +79,7 @@ function setStatus(state, data, motd) {
     ? `${data.players.online ?? "--"} / ${data.players.max ?? "--"}`
     : "-- / --";
   versionValue.textContent = data?.version?.name_clean || data?.version?.name || data?.version || data?.protocol?.name || "Unknown";
-  checkedAtValue.textContent = new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZone: "America/New_York",
-    timeZoneName: "short"
-  }).format(new Date());
+  checkedAtValue.textContent = formatNYCTime(new Date());
 
   if (state === "closed") {
     statusIcon.textContent = "X";
@@ -132,13 +137,7 @@ async function checkServer() {
     motdValue.textContent = error.message;
     playersValue.textContent = "-- / --";
     versionValue.textContent = "Unknown";
-    checkedAtValue.textContent = new Intl.DateTimeFormat(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
-      timeZone: "America/New_York",
-      timeZoneName: "short"
-    }).format(new Date());
+    checkedAtValue.textContent = formatNYCTime(new Date());
   } finally {
     checking = false;
     refreshButton.disabled = false;

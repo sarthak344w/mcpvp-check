@@ -3,6 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 const SERVER_ADDRESS = "mcpvp.com";
 const API_URL = `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`;
 const STATE_FILE = ".mcpvp-state.json";
+const HISTORY_FILE = "whitelist-history.json";
 const NTFY_TOPIC = process.env.NTFY_TOPIC;
 
 function decodeHtml(value) {
@@ -61,6 +62,23 @@ async function readPreviousState() {
   }
 }
 
+async function readHistory() {
+  try {
+    const history = JSON.parse(await readFile(HISTORY_FILE, "utf8"));
+    return Array.isArray(history) ? history : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeHistory(history) {
+  const trimmed = history
+    .sort((a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime())
+    .slice(0, 50);
+
+  await writeFile(HISTORY_FILE, `${JSON.stringify(trimmed, null, 2)}\n`);
+}
+
 async function notifyOpen(motd) {
   if (!NTFY_TOPIC) {
     console.log("NTFY_TOPIC is not set; skipping notification.");
@@ -101,6 +119,26 @@ if (state === "open" && previous.state !== "open") {
   await notifyOpen(motd);
   console.log("Sent ntfy notification.");
 }
+
+const history = await readHistory();
+const newestEntry = history[0];
+
+if (state === "open" && previous.state !== "open") {
+  history.unshift({
+    openedAt: new Date().toISOString(),
+    closedAt: null,
+    motd
+  });
+  console.log("Recorded whitelist-off start.");
+}
+
+if (state !== "open" && previous.state === "open" && newestEntry && !newestEntry.closedAt) {
+  newestEntry.closedAt = new Date().toISOString();
+  newestEntry.closedMotd = motd;
+  console.log("Recorded whitelist-off end.");
+}
+
+await writeHistory(history);
 
 await writeFile(
   STATE_FILE,

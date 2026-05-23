@@ -10,6 +10,7 @@ const motdValue = document.querySelector("#motd");
 const playersValue = document.querySelector("#players");
 const versionValue = document.querySelector("#version");
 const checkedAtValue = document.querySelector("#checked-at");
+const historyList = document.querySelector("#history-list");
 const refreshButton = document.querySelector("#refresh-button");
 const copyAddressButton = document.querySelector("#copy-address");
 const serverAddressValue = document.querySelector("#server-address");
@@ -70,6 +71,62 @@ function formatNYCTime(date) {
   }).format(date);
 
   return `${time} EST NYC`;
+}
+
+function formatNYCDateTime(value) {
+  if (!value) {
+    return "Still open";
+  }
+
+  const date = new Date(value);
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York"
+  }).format(date);
+
+  return `${formatted} EST NYC`;
+}
+
+function renderHistory(history) {
+  if (!Array.isArray(history) || history.length === 0) {
+    historyList.textContent = "No whitelist-off times recorded yet.";
+    return;
+  }
+
+  historyList.replaceChildren(
+    ...history.slice(0, 12).map((entry) => {
+      const item = document.createElement("article");
+      item.className = "history-item";
+
+      const opened = document.createElement("p");
+      opened.className = "history-time";
+      opened.textContent = formatNYCDateTime(entry.openedAt);
+
+      const closed = document.createElement("p");
+      closed.className = "history-detail";
+      closed.textContent = entry.closedAt ? `Closed again: ${formatNYCDateTime(entry.closedAt)}` : "Still recorded as open";
+
+      item.append(opened, closed);
+      return item;
+    })
+  );
+}
+
+async function loadHistory() {
+  try {
+    const response = await fetch(`whitelist-history.json?t=${Date.now()}`, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`History returned ${response.status}`);
+    }
+
+    renderHistory(await response.json());
+  } catch {
+    historyList.textContent = "Could not load history yet.";
+  }
 }
 
 function setStatus(state, data, motd) {
@@ -175,4 +232,6 @@ async function copyServerAddress() {
 refreshButton.addEventListener("click", checkServer);
 copyAddressButton.addEventListener("click", copyServerAddress);
 checkServer();
+loadHistory();
 window.setInterval(checkServer, POLL_INTERVAL_MS);
+window.setInterval(loadHistory, POLL_INTERVAL_MS);

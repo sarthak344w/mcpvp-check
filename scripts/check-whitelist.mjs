@@ -55,6 +55,20 @@ function readWhitelistState(motd) {
   return "unknown";
 }
 
+function formatNYCRecordTime(date) {
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "America/New_York"
+  }).format(date);
+
+  return `${formatted} EST NYC`;
+}
+
 async function readPreviousState() {
   try {
     return JSON.parse(await readFile(STATE_FILE, "utf8"));
@@ -177,16 +191,23 @@ const history = await readHistory();
 const newestEntry = history[0];
 
 if (state === "open" && previous.state !== "open") {
+  const openedAt = new Date();
+
   history.unshift({
-    openedAt: new Date().toISOString(),
+    openedAt: openedAt.toISOString(),
+    openedAtNYC: formatNYCRecordTime(openedAt),
     closedAt: null,
+    closedAtNYC: null,
     motd
   });
   console.log("Recorded whitelist-off start.");
 }
 
 if (state !== "open" && previous.state === "open" && newestEntry && !newestEntry.closedAt) {
-  newestEntry.closedAt = new Date().toISOString();
+  const closedAt = new Date();
+
+  newestEntry.closedAt = closedAt.toISOString();
+  newestEntry.closedAtNYC = formatNYCRecordTime(closedAt);
   newestEntry.closedMotd = motd;
   console.log("Recorded whitelist-off end.");
 }

@@ -103,11 +103,13 @@ function renderHistory(history) {
 
       const opened = document.createElement("p");
       opened.className = "history-time";
-      opened.textContent = formatNYCDateTime(entry.openedAt);
+      opened.textContent = entry.openedAtNYC || formatNYCDateTime(entry.openedAt);
 
       const closed = document.createElement("p");
       closed.className = "history-detail";
-      closed.textContent = entry.closedAt ? `Closed again: ${formatNYCDateTime(entry.closedAt)}` : "Still recorded as open";
+      closed.textContent = entry.closedAt
+        ? `Closed again: ${entry.closedAtNYC || formatNYCDateTime(entry.closedAt)}`
+        : "Still recorded as open";
 
       item.append(opened, closed);
       return item;

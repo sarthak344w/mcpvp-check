@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "openedAt": "2026-05-22T21:30:00.000Z",
+    "openedAtNYC": "May 22, 2026, 5:30:00 PM EST NYC",
+    "closedAt": null,
+    "closedAtNYC": null,
+    "motd": "Manual record: whitelist was off/open.",
+    "manual": true
+  }
+]

@@ -188,7 +188,7 @@ if (state !== previous.state) {
 }
 
 const history = await readHistory();
-const newestEntry = history[0];
+const newestOpenEntry = history.find((entry) => !entry.manual && !entry.closedAt);
 
 if (state === "open" && previous.state !== "open") {
   const openedAt = new Date();
@@ -203,12 +203,12 @@ if (state === "open" && previous.state !== "open") {
   console.log("Recorded whitelist-off start.");
 }
 
-if (state !== "open" && previous.state === "open" && newestEntry && !newestEntry.closedAt) {
+if (state !== "open" && previous.state === "open" && newestOpenEntry) {
   const closedAt = new Date();
 
-  newestEntry.closedAt = closedAt.toISOString();
-  newestEntry.closedAtNYC = formatNYCRecordTime(closedAt);
-  newestEntry.closedMotd = motd;
+  newestOpenEntry.closedAt = closedAt.toISOString();
+  newestOpenEntry.closedAtNYC = formatNYCRecordTime(closedAt);
+  newestOpenEntry.closedMotd = motd;
   console.log("Recorded whitelist-off end.");
 }
 

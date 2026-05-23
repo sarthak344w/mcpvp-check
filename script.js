@@ -109,7 +109,9 @@ function renderHistory(history) {
       closed.className = "history-detail";
       closed.textContent = entry.closedAt
         ? `Closed again: ${entry.closedAtNYC || formatNYCDateTime(entry.closedAt)}`
-        : "Still recorded as open";
+        : entry.manual
+          ? "Closed time not recorded"
+          : "Still recorded as open";
 
       item.append(opened, closed);
       return item;

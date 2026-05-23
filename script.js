@@ -71,7 +71,9 @@ function setStatus(state, data, motd) {
   checkedAtValue.textContent = new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
     minute: "2-digit",
-    second: "2-digit"
+    second: "2-digit",
+    timeZone: "America/New_York",
+    timeZoneName: "short"
   }).format(new Date());
 
   if (state === "closed") {
@@ -133,7 +135,9 @@ async function checkServer() {
     checkedAtValue.textContent = new Intl.DateTimeFormat(undefined, {
       hour: "numeric",
       minute: "2-digit",
-      second: "2-digit"
+      second: "2-digit",
+      timeZone: "America/New_York",
+      timeZoneName: "short"
     }).format(new Date());
   } finally {
     checking = false;

@@ -11,8 +11,13 @@ const playersValue = document.querySelector("#players");
 const versionValue = document.querySelector("#version");
 const checkedAtValue = document.querySelector("#checked-at");
 const refreshButton = document.querySelector("#refresh-button");
+const notifyButton = document.querySelector("#notify-button");
 const copyAddressButton = document.querySelector("#copy-address");
 const serverAddressValue = document.querySelector("#server-address");
+const NOTIFY_KEY = "mcpvp-notify-enabled";
+const LAST_STATE_KEY = "mcpvp-last-whitelist-state";
+const POLL_INTERVAL_MS = 60_000;
+let checking = false;
 
 function decodeHtml(value) {
   const textarea = document.createElement("textarea");
@@ -88,6 +93,11 @@ function setStatus(state, data, motd) {
 }
 
 async function checkServer() {
+  if (checking) {
+    return;
+  }
+
+  checking = true;
   refreshButton.disabled = true;
   refreshButton.querySelector("span").textContent = "...";
   statusKicker.textContent = "Checking MOTD";
@@ -105,6 +115,7 @@ async function checkServer() {
     const motd = getMotdText(data);
     const state = data.online ? readWhitelistState(motd) : "unknown";
     setStatus(state, data, motd);
+    await maybeNotifyOpen(state, motd);
   } catch (error) {
     statusCard.className = "status-card unknown";
     statusIcon.textContent = "!";
@@ -120,6 +131,7 @@ async function checkServer() {
       second: "2-digit"
     }).format(new Date());
   } finally {
+    checking = false;
     refreshButton.disabled = false;
     refreshButton.querySelector("span").textContent = "↻";
   }
@@ -152,6 +164,79 @@ async function copyServerAddress() {
   }
 }
 
+function notificationSupported() {
+  return "Notification" in window && window.isSecureContext;
+}
+
+function notificationsEnabled() {
+  return notificationSupported() && localStorage.getItem(NOTIFY_KEY) === "true" && Notification.permission === "granted";
+}
+
+function updateNotifyButton() {
+  if (!notificationSupported()) {
+    notifyButton.textContent = "Use live site";
+    notifyButton.disabled = true;
+    return;
+  }
+
+  if (Notification.permission === "denied") {
+    notifyButton.textContent = "Blocked";
+    notifyButton.disabled = true;
+    return;
+  }
+
+  notifyButton.textContent = notificationsEnabled() ? "Notifications on" : "Notify me";
+}
+
+async function registerServiceWorker() {
+  if ("serviceWorker" in navigator && window.isSecureContext) {
+    return navigator.serviceWorker.register("sw.js");
+  }
+
+  return null;
+}
+
+async function requestNotifications() {
+  if (!notificationSupported()) {
+    updateNotifyButton();
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  localStorage.setItem(NOTIFY_KEY, permission === "granted" ? "true" : "false");
+  await registerServiceWorker();
+  updateNotifyButton();
+}
+
+async function showNotification(title, body) {
+  const registration = await navigator.serviceWorker?.ready.catch(() => null);
+
+  if (registration?.showNotification) {
+    await registration.showNotification(title, {
+      body,
+      tag: "mcpvp-whitelist-open",
+      requireInteraction: true,
+      data: { url: window.location.href }
+    });
+    return;
+  }
+
+  new Notification(title, { body, tag: "mcpvp-whitelist-open" });
+}
+
+async function maybeNotifyOpen(state, motd) {
+  const previousState = localStorage.getItem(LAST_STATE_KEY);
+  localStorage.setItem(LAST_STATE_KEY, state);
+
+  if (state === "open" && previousState !== "open" && notificationsEnabled()) {
+    await showNotification("MCPVP is open", `Whitelist looks off. ${SERVER_ADDRESS} is ready.`);
+  }
+}
+
 refreshButton.addEventListener("click", checkServer);
 copyAddressButton.addEventListener("click", copyServerAddress);
+notifyButton.addEventListener("click", requestNotifications);
+registerServiceWorker();
+updateNotifyButton();
 checkServer();
+window.setInterval(checkServer, POLL_INTERVAL_MS);

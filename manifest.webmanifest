@@ -1,0 +1,10 @@
+{
+  "name": "MCPVP Check",
+  "short_name": "MCPVP",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "description": "Checks the mcpvp.com whitelist status.",
+  "icons": []
+}

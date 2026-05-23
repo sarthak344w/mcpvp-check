@@ -1,17 +1,19 @@
 :root {
   color-scheme: dark;
-  --bg: #102017;
-  --panel: #17231c;
-  --panel-strong: #1d2b23;
-  --line: #2f4538;
-  --text: #f2f7f1;
-  --muted: #b8c7bb;
+  --bg: #050505;
+  --panel: #ffffff;
+  --panel-strong: #111111;
+  --line: #e2e2e2;
+  --text: #ffffff;
+  --muted: #bdbdbd;
+  --card-text: #111111;
+  --card-muted: #686868;
   --green: #49d17d;
   --green-soft: rgba(73, 209, 125, 0.12);
   --red: #ff4f55;
   --amber: #f4b84a;
   --amber-soft: rgba(244, 184, 74, 0.14);
-  --shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -67,10 +69,10 @@ h1 {
   gap: 10px;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 8px;
-  background: var(--panel);
-  color: var(--text);
+  background: #ffffff;
+  color: #111111;
   font-weight: 800;
   box-shadow: var(--shadow);
   white-space: nowrap;
@@ -78,7 +80,7 @@ h1 {
 }
 
 .server-chip:hover {
-  border-color: #6b7a70;
+  border-color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -104,6 +106,7 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  color: var(--card-text);
   box-shadow: var(--shadow);
   overflow: hidden;
   position: relative;
@@ -120,7 +123,7 @@ h1 {
 
 .status-card.open::before {
   border-left-color: var(--green);
-  background: var(--green-soft);
+  background: transparent;
 }
 
 .status-card.closed::before {
@@ -132,6 +135,12 @@ h1 {
 .refresh-button {
   position: relative;
   z-index: 1;
+}
+
+.status-card .status-kicker,
+.detail-box .label,
+#status-detail {
+  color: var(--card-muted);
 }
 
 .status-main {
@@ -176,7 +185,6 @@ h1 {
 #status-detail {
   max-width: 560px;
   margin: 0;
-  color: var(--muted);
   font-size: 1.05rem;
 }
 
@@ -187,16 +195,16 @@ h1 {
   gap: 8px;
   min-width: 122px;
   min-height: 46px;
-  border: 1px solid var(--line);
+  border: 1px solid #111111;
   border-radius: 8px;
   background: var(--panel-strong);
-  color: var(--text);
+  color: #ffffff;
   font-weight: 800;
   cursor: pointer;
 }
 
 .refresh-button:hover {
-  border-color: #6b7a70;
+  border-color: #111111;
   transform: translateY(-1px);
 }
 
@@ -219,11 +227,12 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  color: var(--card-text);
 }
 
 .detail-box p {
   margin: 10px 0 0;
-  color: var(--text);
+  color: var(--card-text);
   font-size: 1.05rem;
   font-weight: 750;
   overflow-wrap: anywhere;

@@ -5,6 +5,7 @@ const API_URL = `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`;
 const STATE_FILE = ".mcpvp-state.json";
 const HISTORY_FILE = "whitelist-history.json";
 const NTFY_TOPIC = process.env.NTFY_TOPIC;
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 function decodeHtml(value) {
   return value
@@ -100,6 +101,49 @@ async function notifyOpen(motd) {
   }
 }
 
+function getStateLabel(state) {
+  if (state === "open") {
+    return "Open to all";
+  }
+
+  if (state === "closed") {
+    return "Not open";
+  }
+
+  if (state === "offline") {
+    return "Offline";
+  }
+
+  return "Unknown";
+}
+
+async function notifyDiscordChange(state, previousState, motd) {
+  if (!DISCORD_WEBHOOK_URL) {
+    console.log("DISCORD_WEBHOOK_URL is not set; skipping Discord notification.");
+    return;
+  }
+
+  const response = await fetch(DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      username: "MCPVP Check",
+      content: [
+        `MCPVP whitelist changed: **${getStateLabel(previousState)}** -> **${getStateLabel(state)}**`,
+        `Server: \`${SERVER_ADDRESS}\``,
+        `MOTD: ${motd}`,
+        "Site: https://sarthak344w.github.io/mcpvp-check/"
+      ].join("\n")
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Discord webhook returned ${response.status}`);
+  }
+}
+
 const response = await fetch(API_URL);
 
 if (!response.ok) {
@@ -118,6 +162,15 @@ console.log(`MOTD: ${motd}`);
 if (state === "open" && previous.state !== "open") {
   await notifyOpen(motd);
   console.log("Sent ntfy notification.");
+}
+
+if (state !== previous.state) {
+  try {
+    await notifyDiscordChange(state, previous.state, motd);
+    console.log("Sent Discord change notification.");
+  } catch (error) {
+    console.warn(`Discord notification failed: ${error.message}`);
+  }
 }
 
 const history = await readHistory();

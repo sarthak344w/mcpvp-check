@@ -11,6 +11,8 @@ const playersValue = document.querySelector("#players");
 const versionValue = document.querySelector("#version");
 const checkedAtValue = document.querySelector("#checked-at");
 const refreshButton = document.querySelector("#refresh-button");
+const copyAddressButton = document.querySelector("#copy-address");
+const serverAddressValue = document.querySelector("#server-address");
 
 function decodeHtml(value) {
   const textarea = document.createElement("textarea");
@@ -65,7 +67,7 @@ function setStatus(state, data, motd) {
     statusIcon.textContent = "X";
     statusKicker.textContent = "Whitelist detected";
     statusTitle.textContent = "Not Open";
-    statusDetail.textContent = "The server MOTD says whitelist is on, so it looks limited to approved players right now.";
+    statusDetail.textContent = "The server MOTD says whitelist is on.";
     return;
   }
 
@@ -123,5 +125,33 @@ async function checkServer() {
   }
 }
 
+async function copyServerAddress() {
+  let copied = false;
+
+  try {
+    await navigator.clipboard.writeText(SERVER_ADDRESS);
+    copied = true;
+  } catch {
+    const input = document.createElement("input");
+    input.value = SERVER_ADDRESS;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.left = "-9999px";
+    document.body.append(input);
+    input.select();
+    copied = document.execCommand("copy");
+    input.remove();
+  } finally {
+    serverAddressValue.textContent = copied ? "Copied" : SERVER_ADDRESS;
+    copyAddressButton.classList.toggle("copied", copied);
+
+    window.setTimeout(() => {
+      serverAddressValue.textContent = SERVER_ADDRESS;
+      copyAddressButton.classList.remove("copied");
+    }, 1200);
+  }
+}
+
 refreshButton.addEventListener("click", checkServer);
+copyAddressButton.addEventListener("click", copyServerAddress);
 checkServer();

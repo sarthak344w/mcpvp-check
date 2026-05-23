@@ -12,15 +12,13 @@
     <main class="shell">
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
-          <p class="eyebrow">Live Minecraft status</p>
           <h1 id="page-title">MCPVP Check</h1>
-          <p class="lede">A clean whitelist checker for <strong>mcpvp.com</strong>.</p>
         </div>
 
-        <div class="server-chip" aria-label="Server address">
+        <button class="server-chip" id="copy-address" type="button" aria-label="Copy server address">
           <span class="pulse" aria-hidden="true"></span>
-          <span>mcpvp.com</span>
-        </div>
+          <span id="server-address">mcpvp.com</span>
+        </button>
       </section>
 
       <section class="status-card unknown" id="status-card" aria-live="polite">
@@ -58,14 +56,6 @@
         </article>
       </section>
 
-      <section class="how-it-works" aria-labelledby="how-title">
-        <h2 id="how-title">How It Checks</h2>
-        <p>
-          This page calls the public mcsrvstat.us endpoint, which resolves DNS,
-          pings the Minecraft server, reads the MOTD, and returns the result as JSON.
-        </p>
-        <code>https://api.mcsrvstat.us/3/mcpvp.com</code>
-      </section>
     </main>
 
     <script src="script.js"></script>

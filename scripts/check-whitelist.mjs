@@ -39,16 +39,50 @@ function getMotdText(data) {
 
 function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
 
-  if (/(white\s*list|whitelist)\s*on/.test(normalized) || normalized.includes("staff alpha testers only")) {
+  const openPhrases = [
+    "whitelist off",
+    "white list off",
+    "open to all",
+    "open for all",
+    "everyone can join",
+    "anyone can join",
+    "public",
+    "now open",
+    "server open",
+    "come join",
+    "join now",
+    "shush dont tell anyone",
+    "shh dont tell anyone",
+    "dont tell anyone"
+  ];
+
+  const closedPhrases = [
+    "not public",
+    "not open to all",
+    "whitelist on",
+    "white list on",
+    "whitelisted only",
+    "white listed only",
+    "staff alpha testers only",
+    "alpha testers only",
+    "staff only",
+    "approved players only",
+    "approved only",
+    "invite only",
+    "private",
+    "closed",
+    "not open",
+    "maintenance",
+    "testers only"
+  ];
+
+  if (hasAny(closedPhrases)) {
     return "closed";
   }
 
-  if (
-    /(white\s*list|whitelist)\s*off/.test(normalized) ||
-    normalized.includes("open to all") ||
-    normalized.includes("public")
-  ) {
+  if (hasAny(openPhrases)) {
     return "open";
   }
 

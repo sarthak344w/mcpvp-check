@@ -6,16 +6,22 @@
     <meta name="description" content="MCPVP Check shows whether mcpvp.com is open to all or whitelist-only by reading the server MOTD.">
     <title>MCPVP Check</title>
     <link rel="preconnect" href="https://api.mcstatus.io">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MCPVP Check">
-    <link rel="stylesheet" href="app.css?v=2">
+    <link rel="stylesheet" href="app.css?v=3">
   </head>
   <body>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="loading-bar" aria-hidden="true"></div>
+
     <main class="shell">
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero-copy">
+      <header class="hero" aria-labelledby="page-title">
+        <div class="logo-wrap">
           <h1 id="page-title">MCPVP Check</h1>
         </div>
 
@@ -23,11 +29,15 @@
           <span class="pulse" aria-hidden="true"></span>
           <span id="server-address">mcpvp.com</span>
         </button>
-      </section>
+      </header>
 
       <section class="status-card unknown" id="status-card" aria-live="polite">
+        <div class="card-bg-deco" aria-hidden="true"></div>
         <div class="status-main">
-          <div class="status-icon" id="status-icon" aria-hidden="true">?</div>
+          <div class="status-icon-wrap">
+            <div class="status-icon-ring" aria-hidden="true"></div>
+            <div class="status-icon" id="status-icon" aria-hidden="true">?</div>
+          </div>
           <div>
             <p class="status-kicker" id="status-kicker">Checking MOTD</p>
             <h2 id="status-title">Loading...</h2>
@@ -43,19 +53,19 @@
 
       <section class="details-grid" aria-label="Server details">
         <article class="detail-box">
-          <span class="label">MOTD</span>
+          <span class="label detail-label">MOTD</span>
           <p id="motd">Waiting for server message...</p>
         </article>
         <article class="detail-box">
-          <span class="label">Players</span>
+          <span class="label detail-label">Players</span>
           <p id="players">-- / --</p>
         </article>
         <article class="detail-box">
-          <span class="label">Version</span>
+          <span class="label detail-label">Version</span>
           <p id="version">Unknown</p>
         </article>
         <article class="detail-box">
-          <span class="label">Last Checked (EST NYC)</span>
+          <span class="label detail-label">Last Checked (EST NYC)</span>
           <p id="checked-at">--</p>
         </article>
       </section>
@@ -67,6 +77,6 @@
 
     </main>
 
-    <script src="script.js?v=9"></script>
+    <script src="script.js?v=10"></script>
   </body>
 </html>

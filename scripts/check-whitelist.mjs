@@ -202,19 +202,25 @@ const data = await response.json();
 const motd = getMotdText(data);
 const state = data.online ? readWhitelistState(motd) : "offline";
 const previous = await readPreviousState();
+const previousState = previous.state === "offline"
+  ? "offline"
+  : previous.motd
+    ? readWhitelistState(previous.motd)
+    : previous.state;
 
 console.log(`Current state: ${state}`);
 console.log(`Previous state: ${previous.state}`);
+console.log(`Previous state from MOTD: ${previousState}`);
 console.log(`MOTD: ${motd}`);
 
-if (state === "open" && previous.state !== "open") {
+if (state === "open" && previousState !== "open") {
   await notifyOpen(motd);
   console.log("Sent ntfy notification.");
 }
 
-if (state !== previous.state) {
+if (state !== previousState) {
   try {
-    await notifyDiscordChange(state, previous.state, motd);
+    await notifyDiscordChange(state, previousState, motd);
     console.log("Sent Discord change notification.");
   } catch (error) {
     console.warn(`Discord notification failed: ${error.message}`);
@@ -224,8 +230,8 @@ if (state !== previous.state) {
 const history = await readHistory();
 const newestOpenEntry = history.find((entry) => !entry.manual && !entry.closedAt);
 
-if (state === "open" && previous.state !== "open") {
-  const openedAt = new Date();
+if (state === "open" && !newestOpenEntry) {
+  const openedAt = previousState === "open" && previous.checkedAt ? new Date(previous.checkedAt) : new Date();
 
   history.unshift({
     openedAt: openedAt.toISOString(),
@@ -237,12 +243,25 @@ if (state === "open" && previous.state !== "open") {
   console.log("Recorded whitelist-off start.");
 }
 
-if (state !== "open" && previous.state === "open" && newestOpenEntry) {
+if (state !== "open" && previousState === "open") {
   const closedAt = new Date();
+  const entryToClose = newestOpenEntry ?? {
+    openedAt: previous.checkedAt || closedAt.toISOString(),
+    openedAtNYC: formatNYCRecordTime(previous.checkedAt ? new Date(previous.checkedAt) : closedAt),
+    closedAt: null,
+    closedAtNYC: null,
+    motd: previous.motd || "Backfilled from previous open state.",
+    inferred: true
+  };
 
-  newestOpenEntry.closedAt = closedAt.toISOString();
-  newestOpenEntry.closedAtNYC = formatNYCRecordTime(closedAt);
-  newestOpenEntry.closedMotd = motd;
+  if (!newestOpenEntry) {
+    history.unshift(entryToClose);
+    console.log("Backfilled missing whitelist-off start.");
+  }
+
+  entryToClose.closedAt = closedAt.toISOString();
+  entryToClose.closedAtNYC = formatNYCRecordTime(closedAt);
+  entryToClose.closedMotd = motd;
   console.log("Recorded whitelist-off end.");
 }
 

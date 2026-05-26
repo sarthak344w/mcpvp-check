@@ -2,9 +2,10 @@
   {
     "openedAt": "2026-05-25T23:00:11.716Z",
     "openedAtNYC": "May 25, 2026, 7:00:11 PM EST NYC",
-    "closedAt": null,
-    "closedAtNYC": null,
-    "motd": "WHITELIST TEMPORARILY OFF :) - shhh dont tell anyone"
+    "closedAt": "2026-05-26T08:21:34.337Z",
+    "closedAtNYC": "May 26, 2026, 4:21:34 AM EST NYC",
+    "motd": "WHITELIST TEMPORARILY OFF :) - shhh dont tell anyone",
+    "closedMotd": "WHITELIST ON :) Alpha Testing for LT5+"
   },
   {
     "openedAt": "2026-05-25T15:41:33.713Z",

@@ -31,6 +31,7 @@ const OPEN_PHRASES = [
   "come join",
   "join now",
   "shush dont tell anyone",
+  "shhh dont tell anyone",
   "shh dont tell anyone",
   "dont tell anyone"
 ];

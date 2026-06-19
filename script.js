@@ -17,6 +17,44 @@ const serverAddressValue = document.querySelector("#server-address");
 const POLL_INTERVAL_MS = 30_000;
 let checking = false;
 
+const OPEN_PHRASES = [
+  "whitelist off",
+  "whitelist temporarily off",
+  "white list off",
+  "open to all",
+  "open for all",
+  "everyone can join",
+  "anyone can join",
+  "public",
+  "now open",
+  "server open",
+  "come join",
+  "join now",
+  "shush dont tell anyone",
+  "shh dont tell anyone",
+  "dont tell anyone"
+];
+
+const CLOSED_PHRASES = [
+  "not public",
+  "not open to all",
+  "whitelist on",
+  "white list on",
+  "whitelisted only",
+  "white listed only",
+  "staff alpha testers only",
+  "alpha testers only",
+  "staff only",
+  "approved players only",
+  "approved only",
+  "invite only",
+  "private",
+  "closed",
+  "not open",
+  "maintenance",
+  "testers only"
+];
+
 function decodeHtml(value) {
   const textarea = document.createElement("textarea");
   textarea.innerHTML = value;
@@ -48,52 +86,15 @@ function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
 
-  const openPhrases = [
-    "whitelist off",
-    "white list off",
-    "open to all",
-    "open for all",
-    "everyone can join",
-    "anyone can join",
-    "public",
-    "now open",
-    "server open",
-    "come join",
-    "join now",
-    "shush dont tell anyone",
-    "shh dont tell anyone",
-    "dont tell anyone"
-  ];
-
-  const closedPhrases = [
-    "not public",
-    "not open to all",
-    "whitelist on",
-    "white list on",
-    "whitelisted only",
-    "white listed only",
-    "staff alpha testers only",
-    "alpha testers only",
-    "staff only",
-    "approved players only",
-    "approved only",
-    "invite only",
-    "private",
-    "closed",
-    "not open",
-    "maintenance",
-    "testers only"
-  ];
-
-  if (hasAny(closedPhrases)) {
+  if (hasAny(CLOSED_PHRASES)) {
     return "closed";
   }
 
-  if (hasAny(openPhrases)) {
+  if (hasAny(OPEN_PHRASES)) {
     return "open";
   }
 
-  return "unknown";
+  return "closed";
 }
 
 function formatNYCTime(date) {
@@ -193,11 +194,9 @@ function setStatus(state, data, motd) {
   }
 
   statusIcon.textContent = "?";
-  statusKicker.textContent = data?.online ? "Server online" : "No ping";
-  statusTitle.textContent = data?.online ? "MOTD unclear" : "Offline";
-  statusDetail.textContent = data?.online
-    ? "The server replied, but the MOTD did not clearly say whitelist on or off."
-    : "The status API could not confirm that the server is online.";
+  statusKicker.textContent = "No ping";
+  statusTitle.textContent = "Offline";
+  statusDetail.textContent = "The status API could not confirm that the server is online.";
 }
 
 async function checkServer() {

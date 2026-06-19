@@ -7,6 +7,44 @@ const HISTORY_FILE = "whitelist-history.json";
 const NTFY_TOPIC = process.env.NTFY_TOPIC;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
+const OPEN_PHRASES = [
+  "whitelist off",
+  "whitelist temporarily off",
+  "white list off",
+  "open to all",
+  "open for all",
+  "everyone can join",
+  "anyone can join",
+  "public",
+  "now open",
+  "server open",
+  "come join",
+  "join now",
+  "shush dont tell anyone",
+  "shh dont tell anyone",
+  "dont tell anyone"
+];
+
+const CLOSED_PHRASES = [
+  "not public",
+  "not open to all",
+  "whitelist on",
+  "white list on",
+  "whitelisted only",
+  "white listed only",
+  "staff alpha testers only",
+  "alpha testers only",
+  "staff only",
+  "approved players only",
+  "approved only",
+  "invite only",
+  "private",
+  "closed",
+  "not open",
+  "maintenance",
+  "testers only"
+];
+
 function decodeHtml(value) {
   return value
     .replaceAll("&amp;", "&")
@@ -41,52 +79,15 @@ function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
 
-  const openPhrases = [
-    "whitelist off",
-    "white list off",
-    "open to all",
-    "open for all",
-    "everyone can join",
-    "anyone can join",
-    "public",
-    "now open",
-    "server open",
-    "come join",
-    "join now",
-    "shush dont tell anyone",
-    "shh dont tell anyone",
-    "dont tell anyone"
-  ];
-
-  const closedPhrases = [
-    "not public",
-    "not open to all",
-    "whitelist on",
-    "white list on",
-    "whitelisted only",
-    "white listed only",
-    "staff alpha testers only",
-    "alpha testers only",
-    "staff only",
-    "approved players only",
-    "approved only",
-    "invite only",
-    "private",
-    "closed",
-    "not open",
-    "maintenance",
-    "testers only"
-  ];
-
-  if (hasAny(closedPhrases)) {
+  if (hasAny(CLOSED_PHRASES)) {
     return "closed";
   }
 
-  if (hasAny(openPhrases)) {
+  if (hasAny(OPEN_PHRASES)) {
     return "open";
   }
 
-  return "unknown";
+  return "closed";
 }
 
 function formatNYCRecordTime(date) {

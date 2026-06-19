@@ -2,9 +2,10 @@
   {
     "openedAt": "2026-06-19T01:00:00.000Z",
     "openedAtNYC": "Jun 18, 2026, 9:00:00 PM EST NYC",
-    "closedAt": null,
-    "closedAtNYC": null,
+    "closedAt": "2026-06-19T01:28:20.000Z",
+    "closedAtNYC": "Jun 18, 2026, 9:28:20 PM EST NYC",
     "motd": "Manual record: whitelist was off/open around 9 PM New York time.",
+    "closedMotd": "Manual record: WHITELIST ON :)",
     "manual": true
   },
   {

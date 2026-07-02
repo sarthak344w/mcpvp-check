@@ -2,9 +2,10 @@
   {
     "openedAt": "2026-07-02T01:51:07.029Z",
     "openedAtNYC": "Jul 1, 2026, 9:51:07 PM EST NYC",
-    "closedAt": null,
-    "closedAtNYC": null,
-    "motd": "WHITELIST TEMPORARILY OFF :) - shhh dont tell anyone"
+    "closedAt": "2026-07-02T05:44:42.612Z",
+    "closedAtNYC": "Jul 2, 2026, 1:44:42 AM EST NYC",
+    "motd": "WHITELIST TEMPORARILY OFF :) - shhh dont tell anyone",
+    "closedMotd": "WHITELIST ON :) Staff & Alpha Testers only."
   },
   {
     "openedAt": "2026-06-19T01:00:00.000Z",

@@ -13,6 +13,8 @@
   --red: #ff4f55;
   --amber: #f4b84a;
   --amber-soft: rgba(244, 184, 74, 0.14);
+  --rank: #f08a2a;
+  --rank-soft: rgba(240, 138, 42, 0.14);
   --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
 }
 
@@ -132,8 +134,8 @@ h1 {
 }
 
 .status-card.limited::before {
-  border-left-color: var(--amber);
-  background: var(--amber-soft);
+  border-left-color: var(--rank);
+  background: var(--rank-soft);
 }
 
 .status-main,
@@ -181,13 +183,19 @@ h1 {
 }
 
 .limited .status-icon {
-  border-color: var(--amber);
-  background: rgba(244, 184, 74, 0.12);
-  color: var(--amber);
+  border-color: var(--rank);
+  background: rgba(240, 138, 42, 0.12);
+  color: var(--rank);
 }
 
 .status-icon.rank {
+  border-color: var(--rank);
+  color: var(--rank);
   font-size: clamp(1.7rem, 4vw, 3rem);
+}
+
+.limited .status-kicker {
+  color: var(--rank);
 }
 
 #status-title {
@@ -316,7 +324,7 @@ h1 {
   font-size: 0.78rem;
   font-weight: 900;
   line-height: 1;
-  cursor: help;
+  cursor: pointer;
   flex: none;
 }
 
@@ -348,7 +356,7 @@ h1 {
 }
 
 .help-icon:focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--rank);
   outline-offset: 2px;
 }
 

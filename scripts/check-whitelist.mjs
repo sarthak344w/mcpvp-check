@@ -1,34 +1,33 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 const SERVER_ADDRESS = "mcpvp.com";
-const STATUS_SOURCES = [
-  {
-    name: "mcstatus.io",
-    url: `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`,
-    normalize(data) {
-      return {
-        source: "mcstatus.io",
-        online: Boolean(data?.online),
-        motd: getMotdText(data),
-        players: data?.players,
-        version: data?.version?.name_clean || data?.version?.name || data?.version || data?.protocol?.name || "Unknown"
-      };
-    }
-  },
-  {
-    name: "mcsrvstat.us",
-    url: `https://api.mcsrvstat.us/3/${SERVER_ADDRESS}`,
-    normalize(data) {
-      return {
-        source: "mcsrvstat.us",
-        online: Boolean(data?.online),
-        motd: getMotdText(data),
-        players: data?.players,
-        version: data?.version || data?.protocol?.name || "Unknown"
-      };
-    }
+const PRIMARY_SOURCE = {
+  name: "mcstatus.io",
+  url: `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`,
+  normalize(data) {
+    return {
+      source: "mcstatus.io",
+      online: Boolean(data?.online),
+      motd: getMotdText(data),
+      players: data?.players,
+      version: data?.version?.name_clean || data?.version?.name || data?.version || data?.protocol?.name || "Unknown"
+    };
   }
-];
+};
+
+const FALLBACK_SOURCE = {
+  name: "mcsrvstat.us",
+  url: `https://api.mcsrvstat.us/3/${SERVER_ADDRESS}`,
+  normalize(data) {
+    return {
+      source: "mcsrvstat.us",
+      online: Boolean(data?.online),
+      motd: getMotdText(data),
+      players: data?.players,
+      version: data?.version || data?.protocol?.name || "Unknown"
+    };
+  }
+};
 const STATE_FILE = ".mcpvp-state.json";
 const HISTORY_FILE = "whitelist-history.json";
 const NTFY_TOPIC = process.env.NTFY_TOPIC;
@@ -166,24 +165,35 @@ async function fetchStatusSource(source) {
 }
 
 async function fetchServerStatus() {
-  const settled = await Promise.allSettled(STATUS_SOURCES.map(fetchStatusSource));
-  const results = settled
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value);
-  const errors = settled
-    .filter((result) => result.status === "rejected")
-    .map((result) => result.reason.message);
-  const onlineResults = results.filter((result) => result.online);
+  const primary = await fetchStatusSource(PRIMARY_SOURCE).catch((error) => ({ error: error.message }));
 
-  if (onlineResults.length === 0 && results.length === 0) {
-    throw new Error(errors.join(" | ") || "All status APIs failed.");
+  if (!primary.error) {
+    const primaryState = readWhitelistState(primary.motd);
+
+    if (primaryState !== "unknown") {
+      return primary;
+    }
+
+    const fallback = await fetchStatusSource(FALLBACK_SOURCE).catch((error) => ({ error: error.message }));
+
+    if (!fallback.error) {
+      const fallbackState = readWhitelistState(fallback.motd);
+
+      if (fallbackState !== "unknown") {
+        return fallback;
+      }
+    }
+
+    return primary;
   }
 
-  const rankedResults = onlineResults.length ? onlineResults : results;
-  return rankedResults.find((result) => readWhitelistState(result.motd) === "open")
-    || rankedResults.find((result) => readWhitelistState(result.motd) === "limited")
-    || rankedResults.find((result) => readWhitelistState(result.motd) === "closed")
-    || rankedResults[0];
+  const fallback = await fetchStatusSource(FALLBACK_SOURCE).catch((error) => ({ error: error.message }));
+
+  if (!fallback.error) {
+    return fallback;
+  }
+
+  throw new Error([primary.error, fallback.error].filter(Boolean).join(" | ") || "All status APIs failed.");
 }
 
 async function readPreviousState() {

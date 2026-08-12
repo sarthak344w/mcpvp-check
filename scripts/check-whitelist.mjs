@@ -127,7 +127,7 @@ function readWhitelistState(motd) {
     return "open";
   }
 
-  return "closed";
+  return "unknown";
 }
 
 function formatNYCRecordTime(date) {

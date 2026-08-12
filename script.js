@@ -134,7 +134,7 @@ function readWhitelistState(motd) {
     return "open";
   }
 
-  return "closed";
+  return "unknown";
 }
 
 function formatNYCTime(date) {
@@ -281,7 +281,7 @@ async function checkServer() {
   refreshButton.querySelector("span").textContent = "...";
   statusKicker.textContent = "Checking MOTD";
   statusTitle.textContent = "Loading...";
-  statusDetail.textContent = "Contacting the Minecraft status API.";
+  statusDetail.textContent = "Contacting the Minecraft status APIs.";
 
   try {
     const data = await fetchServerStatus();

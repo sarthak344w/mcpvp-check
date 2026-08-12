@@ -1,18 +1,24 @@
 # MCPVP Check
 
-A simple GitHub Pages website that checks `mcpvp.com` through the public mcstatus.io API.
+A simple GitHub Pages website that checks `mcpvp.com` through public Minecraft status APIs.
 
-The page reads the server MOTD from:
+The page reads the server MOTD from both:
 
 ```text
 https://api.mcstatus.io/v2/status/java/mcpvp.com
+https://api.mcsrvstat.us/3/mcpvp.com
 ```
 
 Rules:
 
+- `UNLOCKED` means `Open to all` with a green check.
+- `LOCKED` means `Not Open` with a red `X`.
 - `WHITELIST ON` means `Not Open` with a red `X`.
 - `WHITELIST OFF`, `Open to all`, or public wording means `Open to all` with a green check.
 - Anything unclear shows an unknown state so the site does not guess.
+
+The GitHub Action records whitelist-off history in `whitelist-history.json`.
+Each record stores an ISO timestamp plus an `EST NYC` display string like `Aug 11, 2026, 8:57:13 PM EST NYC`.
 
 ## Notifications
 

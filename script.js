@@ -1,5 +1,32 @@
 const SERVER_ADDRESS = "mcpvp.com";
-const API_URL = `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`;
+const STATUS_SOURCES = [
+  {
+    name: "mcstatus.io",
+    url: `https://api.mcstatus.io/v2/status/java/${SERVER_ADDRESS}`,
+    normalize(data) {
+      return {
+        source: "mcstatus.io",
+        online: Boolean(data?.online),
+        motd: getMotdText(data),
+        players: data?.players,
+        version: data?.version?.name_clean || data?.version?.name || data?.version || data?.protocol?.name || "Unknown"
+      };
+    }
+  },
+  {
+    name: "mcsrvstat.us",
+    url: `https://api.mcsrvstat.us/3/${SERVER_ADDRESS}`,
+    normalize(data) {
+      return {
+        source: "mcsrvstat.us",
+        online: Boolean(data?.online),
+        motd: getMotdText(data),
+        players: data?.players,
+        version: data?.version || data?.protocol?.name || "Unknown"
+      };
+    }
+  }
+];
 
 const statusCard = document.querySelector("#status-card");
 const statusIcon = document.querySelector("#status-icon");
@@ -18,6 +45,8 @@ const POLL_INTERVAL_MS = 30_000;
 let checking = false;
 
 const OPEN_PHRASES = [
+  "alpha testing in progress unlocked",
+  "unlocked",
   "whitelist off",
   "whitelist temporarily off",
   "white list off",
@@ -37,6 +66,8 @@ const OPEN_PHRASES = [
 ];
 
 const CLOSED_PHRASES = [
+  "alpha testing in progress locked",
+  "locked",
   "not public",
   "not open to all",
   "whitelist on",
@@ -87,6 +118,14 @@ function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
 
+  if (/\bunlocked\b/.test(normalized)) {
+    return "open";
+  }
+
+  if (/\blocked\b/.test(normalized)) {
+    return "closed";
+  }
+
   if (hasAny(CLOSED_PHRASES)) {
     return "closed";
   }
@@ -124,6 +163,36 @@ function formatNYCDateTime(value) {
   }).format(date);
 
   return `${formatted} EST NYC`;
+}
+
+async function fetchStatusSource(source) {
+  const response = await fetch(`${source.url}?t=${Date.now()}`, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(`${source.name} returned ${response.status}`);
+  }
+
+  return source.normalize(await response.json());
+}
+
+async function fetchServerStatus() {
+  const settled = await Promise.allSettled(STATUS_SOURCES.map(fetchStatusSource));
+  const results = settled
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
+  const errors = settled
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason.message);
+  const onlineResults = results.filter((result) => result.online);
+
+  if (onlineResults.length === 0 && results.length === 0) {
+    throw new Error(errors.join(" | ") || "All status APIs failed.");
+  }
+
+  const rankedResults = onlineResults.length ? onlineResults : results;
+  return rankedResults.find((result) => readWhitelistState(result.motd) === "open")
+    || rankedResults.find((result) => readWhitelistState(result.motd) === "closed")
+    || rankedResults[0];
 }
 
 function renderHistory(history) {
@@ -169,35 +238,37 @@ async function loadHistory() {
   }
 }
 
-function setStatus(state, data, motd) {
+function setStatus(state, data) {
   statusCard.className = `status-card ${state}`;
-  motdValue.textContent = motd;
+  motdValue.textContent = data.motd;
   playersValue.textContent = data?.players
     ? `${data.players.online ?? "--"} / ${data.players.max ?? "--"}`
     : "-- / --";
-  versionValue.textContent = data?.version?.name_clean || data?.version?.name || data?.version || data?.protocol?.name || "Unknown";
+  versionValue.textContent = data.version || "Unknown";
   checkedAtValue.textContent = formatNYCTime(new Date());
 
   if (state === "closed") {
     statusIcon.textContent = "X";
-    statusKicker.textContent = "Whitelist detected";
+    statusKicker.textContent = "Locked";
     statusTitle.textContent = "Not Open";
-    statusDetail.textContent = "The server MOTD says whitelist is on.";
+    statusDetail.textContent = "The server MOTD says locked.";
     return;
   }
 
   if (state === "open") {
     statusIcon.textContent = "✓";
-    statusKicker.textContent = "Whitelist off";
+    statusKicker.textContent = "Unlocked";
     statusTitle.textContent = "Open to all";
-    statusDetail.textContent = "The server MOTD says whitelist is off or public, so anyone should be able to join.";
+    statusDetail.textContent = "The server MOTD says unlocked.";
     return;
   }
 
   statusIcon.textContent = "?";
-  statusKicker.textContent = "No ping";
-  statusTitle.textContent = "Offline";
-  statusDetail.textContent = "The status API could not confirm that the server is online.";
+  statusKicker.textContent = data?.online ? "Server online" : "No ping";
+  statusTitle.textContent = data?.online ? "MOTD unclear" : "Offline";
+  statusDetail.textContent = data?.online
+    ? "The server replied, but the MOTD did not clearly say whitelist on or off."
+    : "The status APIs could not confirm that the server is online.";
 }
 
 async function checkServer() {
@@ -213,22 +284,15 @@ async function checkServer() {
   statusDetail.textContent = "Contacting the Minecraft status API.";
 
   try {
-    const response = await fetch(`${API_URL}?t=${Date.now()}`, { cache: "no-store" });
-
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
-
-    const data = await response.json();
-    const motd = getMotdText(data);
-    const state = data.online ? readWhitelistState(motd) : "unknown";
-    setStatus(state, data, motd);
+    const data = await fetchServerStatus();
+    const state = data.online ? readWhitelistState(data.motd) : "unknown";
+    setStatus(state, data);
   } catch (error) {
     statusCard.className = "status-card unknown";
     statusIcon.textContent = "!";
     statusKicker.textContent = "Checker error";
     statusTitle.textContent = "Try Again";
-    statusDetail.textContent = "Could not reach the status API from this browser.";
+    statusDetail.textContent = "Could not reach the status APIs from this browser.";
     motdValue.textContent = error.message;
     playersValue.textContent = "-- / --";
     versionValue.textContent = "Unknown";

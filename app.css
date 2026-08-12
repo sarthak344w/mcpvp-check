@@ -131,6 +131,11 @@ h1 {
   background: transparent;
 }
 
+.status-card.limited::before {
+  border-left-color: var(--amber);
+  background: var(--amber-soft);
+}
+
 .status-main,
 .refresh-button {
   position: relative;
@@ -173,6 +178,16 @@ h1 {
   border-color: var(--red);
   background: rgba(255, 79, 85, 0.1);
   color: var(--red);
+}
+
+.limited .status-icon {
+  border-color: var(--amber);
+  background: rgba(244, 184, 74, 0.12);
+  color: var(--amber);
+}
+
+.status-icon.rank {
+  font-size: clamp(1.7rem, 4vw, 3rem);
 }
 
 #status-title {
@@ -284,6 +299,57 @@ h1 {
 .history-detail {
   margin-top: 4px;
   color: var(--card-muted);
+}
+
+.help-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--card-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: help;
+  flex: none;
+}
+
+.help-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  width: max-content;
+  max-width: min(320px, 72vw);
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  border-radius: 8px;
+  background: #111111;
+  color: #ffffff;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: normal;
+  z-index: 4;
+}
+
+.help-icon:hover::after,
+.help-icon:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-icon:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
 @media (max-width: 780px) {

@@ -77,6 +77,9 @@ const CLOSED_PHRASES = [
   "testers only"
 ];
 
+const RANK_GATE_PATTERN = /(?:LT|HT)[1-5]\+/i;
+const ACTIVE_STATES = new Set(["open", "limited"]);
+
 function decodeHtml(value) {
   return value
     .replaceAll("&amp;", "&")
@@ -107,6 +110,10 @@ function getMotdText(data) {
   return decodeHtml(lines.join(" ")).replace(/\s+/g, " ").trim();
 }
 
+function getRankGate(motd) {
+  return motd.match(RANK_GATE_PATTERN)?.[0].toUpperCase() || null;
+}
+
 function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
@@ -117,6 +124,10 @@ function readWhitelistState(motd) {
 
   if (/\blocked\b/.test(normalized)) {
     return "closed";
+  }
+
+  if (getRankGate(motd)) {
+    return "limited";
   }
 
   if (hasAny(CLOSED_PHRASES)) {
@@ -170,6 +181,7 @@ async function fetchServerStatus() {
 
   const rankedResults = onlineResults.length ? onlineResults : results;
   return rankedResults.find((result) => readWhitelistState(result.motd) === "open")
+    || rankedResults.find((result) => readWhitelistState(result.motd) === "limited")
     || rankedResults.find((result) => readWhitelistState(result.motd) === "closed")
     || rankedResults[0];
 }
@@ -229,6 +241,10 @@ function getStateLabel(state) {
 
   if (state === "closed") {
     return "Not open";
+  }
+
+  if (state === "limited") {
+    return "Open to some";
   }
 
   if (state === "offline") {
@@ -300,41 +316,70 @@ if (state !== previousState) {
 }
 
 const history = await readHistory();
-const newestOpenEntry = history.find((entry) => !entry.manual && !entry.closedAt);
+const newestActiveEntry = history.find((entry) => !entry.manual && !entry.closedAt);
+const rankGate = getRankGate(motd);
 
-if (state === "open" && !newestOpenEntry) {
-  const openedAt = previousState === "open" && previous.checkedAt ? new Date(previous.checkedAt) : new Date();
-
+if (ACTIVE_STATES.has(state) && !newestActiveEntry) {
+  const openedAt = ACTIVE_STATES.has(previousState) && previous.checkedAt ? new Date(previous.checkedAt) : new Date();
   history.unshift({
     openedAt: openedAt.toISOString(),
     openedAtNYC: formatNYCRecordTime(openedAt),
     closedAt: null,
     closedAtNYC: null,
-    motd
+    motd,
+    accessState: state,
+    rankGate
   });
-  console.log("Recorded whitelist-off start.");
+  console.log("Recorded whitelist access start.");
 }
 
-if (state !== "open" && previousState === "open") {
+if (ACTIVE_STATES.has(state) && newestActiveEntry && getHistoryAccessState(newestActiveEntry) !== state) {
+  const transitionAt = new Date();
+
+  newestActiveEntry.closedAt = transitionAt.toISOString();
+  newestActiveEntry.closedAtNYC = formatNYCRecordTime(transitionAt);
+  newestActiveEntry.closedMotd = motd;
+
+  history.unshift({
+    openedAt: transitionAt.toISOString(),
+    openedAtNYC: formatNYCRecordTime(transitionAt),
+    closedAt: null,
+    closedAtNYC: null,
+    motd,
+    accessState: state,
+    rankGate
+  });
+  console.log("Recorded whitelist access transition.");
+}
+
+if (ACTIVE_STATES.has(state) && newestActiveEntry && getHistoryAccessState(newestActiveEntry) === state) {
+  newestActiveEntry.accessState = state;
+  newestActiveEntry.rankGate = rankGate;
+  newestActiveEntry.motd = motd;
+}
+
+if (!ACTIVE_STATES.has(state) && ACTIVE_STATES.has(previousState)) {
   const closedAt = new Date();
-  const entryToClose = newestOpenEntry ?? {
+  const entryToClose = newestActiveEntry ?? {
     openedAt: previous.checkedAt || closedAt.toISOString(),
     openedAtNYC: formatNYCRecordTime(previous.checkedAt ? new Date(previous.checkedAt) : closedAt),
     closedAt: null,
     closedAtNYC: null,
     motd: previous.motd || "Backfilled from previous open state.",
+    accessState: previousState,
+    rankGate: previous.motd ? getRankGate(previous.motd) : null,
     inferred: true
   };
 
-  if (!newestOpenEntry) {
+  if (!newestActiveEntry) {
     history.unshift(entryToClose);
-    console.log("Backfilled missing whitelist-off start.");
+    console.log("Backfilled missing whitelist access start.");
   }
 
   entryToClose.closedAt = closedAt.toISOString();
   entryToClose.closedAtNYC = formatNYCRecordTime(closedAt);
   entryToClose.closedMotd = motd;
-  console.log("Recorded whitelist-off end.");
+  console.log("Recorded whitelist access end.");
 }
 
 await writeHistory(history);

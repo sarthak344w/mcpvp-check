@@ -1,9 +1,18 @@
 [
   {
+    "openedAt": "2026-08-12T16:39:16.145Z",
+    "openedAtNYC": "Aug 12, 2026, 12:39:16 PM EST NYC",
+    "closedAt": null,
+    "closedAtNYC": null,
+    "motd": "MCPVP ╰┈➤ Alpha Testing In Progress HT3+",
+    "accessState": "limited",
+    "rankGate": "HT3+"
+  },
+  {
     "openedAt": "2026-08-12T00:57:13.895Z",
     "openedAtNYC": "Aug 11, 2026, 8:57:13 PM EST NYC",
-    "closedAt": "2026-08-12T03:15:58.415Z",
-    "closedAtNYC": "Aug 11, 2026, 11:15:58 PM EST NYC",
+    "closedAt": "2026-08-12T16:39:16.111Z",
+    "closedAtNYC": "Aug 12, 2026, 12:39:16 PM EST NYC",
     "motd": "MCPVP ╰┈➤ Alpha Testing In Progress UNLOCKED",
     "closedMotd": "MCPVP ╰┈➤ Alpha Testing In Progress HT3+"
   },

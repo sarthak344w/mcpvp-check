@@ -99,6 +99,9 @@ const CLOSED_PHRASES = [
   "testers only"
 ];
 
+const RANK_GATE_PATTERN = /(?:LT|HT)[1-5]\+/i;
+const ACTIVE_STATES = new Set(["open", "limited"]);
+
 function decodeHtml(value) {
   const textarea = document.createElement("textarea");
   textarea.innerHTML = value;
@@ -126,6 +129,32 @@ function getMotdText(data) {
   return decodeHtml(lines.join(" ")).replace(/\s+/g, " ").trim();
 }
 
+function getRankGate(motd) {
+  return motd.match(RANK_GATE_PATTERN)?.[0].toUpperCase() || null;
+}
+
+function getHistoryAccessState(entry) {
+  if (entry?.accessState) {
+    return entry.accessState;
+  }
+
+  if (entry?.rankGate || getRankGate(entry?.motd || "")) {
+    return "limited";
+  }
+
+  return "open";
+}
+
+function getHistoryAccessLabel(entry) {
+  const accessState = getHistoryAccessState(entry);
+
+  if (accessState === "limited") {
+    return `Open to some (${entry.rankGate || getRankGate(entry?.motd || "") || "rank"})`;
+  }
+
+  return "Open to all";
+}
+
 function readWhitelistState(motd) {
   const normalized = motd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const hasAny = (phrases) => phrases.some((phrase) => normalized.includes(phrase));
@@ -136,6 +165,10 @@ function readWhitelistState(motd) {
 
   if (/\blocked\b/.test(normalized)) {
     return "closed";
+  }
+
+  if (getRankGate(motd)) {
+    return "limited";
   }
 
   if (hasAny(CLOSED_PHRASES)) {
@@ -203,6 +236,7 @@ async function fetchServerStatus() {
 
   const rankedResults = onlineResults.length ? onlineResults : results;
   return rankedResults.find((result) => readWhitelistState(result.motd) === "open")
+    || rankedResults.find((result) => readWhitelistState(result.motd) === "limited")
     || rankedResults.find((result) => readWhitelistState(result.motd) === "closed")
     || rankedResults[0];
 }
@@ -220,13 +254,15 @@ function renderHistory(history) {
 
       const opened = document.createElement("p");
       opened.className = "history-time";
-      opened.textContent = entry.openedAtNYC || formatNYCDateTime(entry.openedAt);
+      opened.textContent = `${getHistoryAccessLabel(entry)} · ${entry.openedAtNYC || formatNYCDateTime(entry.openedAt)}`;
 
       const closed = document.createElement("p");
       closed.className = "history-detail";
       closed.textContent = entry.closedAt
         ? `Closed again: ${entry.closedAtNYC || formatNYCDateTime(entry.closedAt)}`
-        : entry.manual
+        : getHistoryAccessState(entry) === "limited"
+          ? "Still recorded as open to some"
+          : entry.manual
           ? "Closed time not recorded"
           : "Still recorded as open";
 
@@ -261,6 +297,7 @@ function setStatus(state, data) {
 
   if (state === "closed") {
     statusIcon.textContent = "X";
+    statusIcon.classList.remove("rank");
     statusKicker.textContent = "Locked";
     statusTitle.textContent = "Not Open";
     statusDetail.textContent = "The server MOTD says locked.";
@@ -269,18 +306,50 @@ function setStatus(state, data) {
 
   if (state === "open") {
     statusIcon.textContent = "✓";
+    statusIcon.classList.remove("rank");
     statusKicker.textContent = "Unlocked";
     statusTitle.textContent = "Open to all";
     statusDetail.textContent = "The server MOTD says unlocked.";
     return;
   }
 
+  if (state === "limited") {
+    const rank = getRankGate(data.motd) || "Ranked";
+    statusIcon.textContent = rank;
+    statusIcon.classList.add("rank");
+    statusKicker.textContent = `Rank gate: ${rank}`;
+    statusTitle.textContent = "Open to some";
+    const detail = document.createElement("span");
+    detail.textContent = `Only players with ${rank} or better can join.`;
+    statusDetail.replaceChildren(
+      detail,
+      createHelpIcon()
+    );
+    return;
+  }
+
   statusIcon.textContent = "?";
+  statusIcon.classList.remove("rank");
   statusKicker.textContent = data?.online ? "Server online" : "No ping";
   statusTitle.textContent = data?.online ? "MOTD unclear" : "Offline";
   statusDetail.textContent = data?.online
     ? "The server replied, but the MOTD did not clearly say whitelist on or off."
     : "The status APIs could not confirm that the server is online.";
+}
+
+function createHelpIcon() {
+  const help = document.createElement("button");
+  help.type = "button";
+  help.className = "help-icon";
+  help.textContent = "?";
+  const tooltip = "I am the rank the MOTD says but I cannot join. You must have gotten that rank before April on MC Tiers or PvP Tiers.";
+  help.setAttribute(
+    "aria-label",
+    tooltip
+  );
+  help.title = tooltip;
+  help.dataset.tooltip = "If you are this rank but cannot join, you must have gotten that rank before April on MC Tiers or PvP Tiers.";
+  return help;
 }
 
 async function checkServer() {

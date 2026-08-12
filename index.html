@@ -68,6 +68,10 @@
 
     </main>
 
-    <script src="script.js?v=11"></script>
+    <script>
+      const checkerScript = document.createElement("script");
+      checkerScript.src = `script.js?v=${Date.now()}`;
+      document.body.append(checkerScript);
+    </script>
   </body>
 </html>

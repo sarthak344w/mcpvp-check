@@ -44,6 +44,18 @@ const serverAddressValue = document.querySelector("#server-address");
 const POLL_INTERVAL_MS = 30_000;
 let checking = false;
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => registration.unregister());
+  });
+}
+
+if ("caches" in window) {
+  caches.keys().then((keys) => {
+    keys.forEach((key) => caches.delete(key));
+  });
+}
+
 const OPEN_PHRASES = [
   "alpha testing in progress unlocked",
   "unlocked",

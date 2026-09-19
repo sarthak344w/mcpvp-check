@@ -1,6 +1,6 @@
 {
-  "state": "offline",
-  "motd": "No MOTD returned.",
+  "state": "unknown",
+  "motd": "MCPVP ╰┈➤ Now In: Prague, Amsterdam, Lisbon, Karachi",
   "source": "mcstatus.io",
-  "checkedAt": "2026-09-19T13:25:05.790Z"
+  "checkedAt": "2026-09-19T16:36:21.030Z"
 }

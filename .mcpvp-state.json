@@ -1,6 +1,6 @@
 {
-  "state": "offline",
-  "motd": "No MOTD returned.",
+  "state": "unknown",
+  "motd": "MCPVP ╰┈➤ BETA",
   "source": "mcstatus.io",
-  "checkedAt": "2026-10-24T06:14:15.777Z"
+  "checkedAt": "2026-10-24T11:00:57.194Z"
 }
